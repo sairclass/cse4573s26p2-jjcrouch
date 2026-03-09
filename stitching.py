@@ -22,10 +22,21 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
     Returns:
         img: stitched_image: torch.Tensor of the output image.
     """
+    
     img = torch.zeros((3, 256, 256)) # assumed 256*256 resolution. Update this as per your logic.
 
     #TODO: Add your code here. Do not modify the return and input arguments.
     
+    keypoints = {}
+    features = {}
+    # Iterate through images
+    for img_num, img_array in imgs.items():
+        # Use SIFT to extract key points and features
+        loc_affine_frms, resp_func_vals, loc_descs = K.feature.SIFTFeature()
+        # Save key points and features
+        keypoints[img_num] = loc_affine_frms
+        features[img_num] = loc_descs
+        
     return img
 
 # ------------------------------------ Task 2 ------------------------------------ #
