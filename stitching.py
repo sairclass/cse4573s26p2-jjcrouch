@@ -31,6 +31,9 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
     features = {}
     # Iterate through images
     for img_num, img_array in imgs.items():
+        # Add channel to match SIFT function input shape
+        if len(img_array.shape) == 3:
+            img_array = img_array.unsqueeze(0)
         # Use SIFT to extract key points and features
         loc_affine_frms, resp_func_vals, loc_descs = K.feature.SIFTFeature()(img_array)
         # Save key points and features
