@@ -32,10 +32,12 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
     # Iterate through images
     for img_num, img_array in imgs.items():
         # Use SIFT to extract key points and features
-        loc_affine_frms, resp_func_vals, loc_descs = K.feature.SIFTFeature()
+        loc_affine_frms, resp_func_vals, loc_descs = K.feature.SIFTFeature()(img_array)
         # Save key points and features
         keypoints[img_num] = loc_affine_frms
         features[img_num] = loc_descs
+    
+    print(keypoints, features)
         
     return img
 
