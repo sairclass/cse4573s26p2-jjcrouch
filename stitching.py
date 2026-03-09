@@ -31,6 +31,8 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
     features = {}
     # Iterate through images
     for img_num, img_array in imgs.items():
+        # Convert to float to avoid uint8 SIFT error
+        img_array = img_array.float()
         # Add channel to match SIFT function input shape
         if len(img_array.shape) == 3:
             img_array = img_array.unsqueeze(0)
