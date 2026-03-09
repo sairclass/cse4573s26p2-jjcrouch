@@ -31,13 +31,18 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
     features = {}
     # Iterate through images
     for img_num, img_array in imgs.items():
-        # Convert to float to avoid uint8 SIFT error
+        # Convert to float to match SIFT function expected input
         img_array = img_array.float()
-        # Add channel to match SIFT function input shape
+        # Add channel to match SIFT function expected input
         if len(img_array.shape) == 3:
             img_array = img_array.unsqueeze(0)
+        # Convert to grayscale to match SIFT function expected input
+        if img_array.shape[1] == 3:
+            img_array_g = K.color.rgb_to_grayscale(img_array)
+        else:
+            img_array_g = img_array
         # Use SIFT to extract key points and features
-        loc_affine_frms, resp_func_vals, loc_descs = K.feature.SIFTFeature()(img_array)
+        loc_affine_frms, resp_func_vals, loc_descs = K.feature.SIFTFeature()(img_array_g)
         # Save key points and features
         keypoints[img_num] = loc_affine_frms
         features[img_num] = loc_descs
