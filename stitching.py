@@ -34,7 +34,6 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
     for img_num, img_array in imgs.items():
         # Convert to float to match SIFT function expected input
         img_array = img_array.float()
-        print(img_array.shape)
         # Add channel to match SIFT function expected input
         if len(img_array.shape) == 3:
             img_array = img_array.unsqueeze(0)
@@ -45,16 +44,17 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
             img_array_g = img_array
         # Use SIFT to extract key points and features
         loc_affine_frms, resp_func_vals, loc_descs = K.feature.SIFTFeature()(img_array_g)
-        # Save features
+        # Save key points and features
+        keypoints[img_num] = loc_affine_frms
         features[img_num] = loc_descs
-        print(loc_descs.shape)
     
     ### Match features ###
     feat1 = features[features.keys()[0]]
     feat2 = features[features.keys()[1]]
     # Batch compute SSD
     ssd = torch.cdist(feat1, feat2, p=2.0) ** 2
-    #
+    # Find best (f1-f2) and 2nd best (f1-f2') match for each feature
+    distances, indices = torch.topk(ssd, k=2)
         
     return img
 
