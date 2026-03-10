@@ -49,8 +49,9 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
         features[img_num] = loc_descs
     
     ### Match features ###
-    feat1 = features[features.keys()[0]]
-    feat2 = features[features.keys()[1]]
+    img_num = list(features.keys())
+    feat1 = features[img_num[0]]
+    feat2 = features[img_num[1]]
     # Batch compute SSD
     ssd = torch.cdist(feat1, feat2, p=2.0) ** 2
     # Find best (f1-f2) and 2nd best (f1-f2') match for each feature
