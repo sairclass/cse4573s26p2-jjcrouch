@@ -56,6 +56,14 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
     ssd = torch.cdist(feat1, feat2, p=2.0) ** 2
     # Find best (f1-f2) and 2nd best (f1-f2') match for each feature
     distances, indices = torch.topk(ssd, k=2)
+    best_ssd = distances[..., 0]
+    second_best_ssd = distances[..., 1]
+    # Calculate ssd ratio distances
+    ratio_distances = best_ssd / second_best_ssd
+    # Filter valid matches using threshold
+    threshold = 0.6
+    valid_matches = ratio_distances < threshold
+    
         
     return img
 
