@@ -27,6 +27,7 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
 
     #TODO: Add your code here. Do not modify the return and input arguments.
     
+    ### Extract key points and their respective features for each image ###
     keypoints = {}
     features = {}
     # Iterate through images
@@ -43,11 +44,15 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
             img_array_g = img_array
         # Use SIFT to extract key points and features
         loc_affine_frms, resp_func_vals, loc_descs = K.feature.SIFTFeature()(img_array_g)
-        # Save key points and features
-        keypoints[img_num] = loc_affine_frms
+        # Save features
         features[img_num] = loc_descs
     
-    print(keypoints, features)
+    ### Match features ###
+    feat1 = features[features.keys()[0]]
+    feat2 = features[features.keys()[1]]
+    # Batch compute SSD
+    ssd = torch.cdist(feat1, feat2, p=2.0) ** 2
+    #
         
     return img
 
