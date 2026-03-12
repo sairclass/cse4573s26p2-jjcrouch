@@ -76,8 +76,12 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
         keypoints2_batched = keypoints[img_num[1]][..., :, 2]
         keypoints1 = keypoints1_batched[0]
         keypoints2 = keypoints2_batched[0]
-        print(keypoints1.shape)
-        print(keypoints1)
+        # Define indices for matched points in image 1
+        indices1 = torch.where(valid_matches[0])[0]
+        # Use indices from topk for matched points in image 2
+        indices2 = indices[0, valid_matches[0],0]
+        print(indices1.shape)
+        print(indices2.shape)
     else:
         print("No Overlap")
         
