@@ -80,10 +80,11 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
         indices1 = torch.where(valid_matches[0])[0]
         # Use indices from topk for matched points in image 2
         indices2 = indices[0, valid_matches[0],0]
-        print(indices1.shape)
-        print(indices2.shape)
-    else:
-        print("No Overlap")
+        # Extract matches points per image
+        matched_points1 = keypoints1[indices1]
+        matched_points2 = keypoints2[indices2]
+        
+        ### Compute homography between pairs using RANSAC ###
         
     return img
 
