@@ -63,15 +63,20 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
     # Calculate ssd ratio distances
     ratio_distances = best_ssd / second_best_ssd
     # Filter valid matches using arbitrary threshold
-    threshold = 0.6
+    threshold = 0.8
     valid_matches = ratio_distances < threshold
-    
+    print(valid_matches.sum())
     ### Use matches to determine overlap between images ###
     # Arbitrary match threshold to determine overlap
-    overlap_threshold = 15 # has to be at least 8 for projection matrix d.o.f
+    overlap_threshold = 8 # has to be at least 8 for projection matrix d.o.f
     overlap = valid_matches.sum().item() >= overlap_threshold
     if overlap:
-        
+        keypoints1 = keypoints[img_num[0]]
+        keypoints2 = keypoints[img_num[1]]
+        print(keypoints1.shape)
+        print(keypoints1)
+    else:
+        print("No Overlap")
         
     return img
 
