@@ -65,14 +65,17 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
     # Filter valid matches using arbitrary threshold
     threshold = 0.6
     valid_matches = ratio_distances < threshold
-    print(valid_matches.sum())
+    
     ### Use matches to determine overlap between images ###
     # Arbitrary match threshold to determine overlap
     overlap_threshold = 15 # has to be at least 8 for projection matrix d.o.f
     overlap = valid_matches.sum().item() >= overlap_threshold
     if overlap:
-        keypoints1 = keypoints[img_num[0]]
-        keypoints2 = keypoints[img_num[1]]
+        # Extract keypoints for each image
+        keypoints1_batched = keypoints[img_num[0]][..., :, 2]
+        keypoints2_batched = keypoints[img_num[1]][..., :, 2]
+        keypoints1 = keypoints1_batched[0]
+        keypoints2 = keypoints2_batched[0]
         print(keypoints1.shape)
         print(keypoints1)
     else:
