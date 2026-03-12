@@ -28,6 +28,7 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
     #TODO: Add your code here. Do not modify the return and input arguments.
     
     ### Extract key points and their respective features for each image ###
+    # Define saving dictionaries
     keypoints = {}
     features = {}
     # Iterate through images
@@ -49,6 +50,7 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
         features[img_num] = loc_descs
     
     ### Match features ###
+    # Extract features per image
     img_num = list(features.keys())
     feat1 = features[img_num[0]]
     feat2 = features[img_num[1]]
@@ -60,10 +62,16 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
     second_best_ssd = distances[..., 1]
     # Calculate ssd ratio distances
     ratio_distances = best_ssd / second_best_ssd
-    # Filter valid matches using threshold
+    # Filter valid matches using arbitrary threshold
     threshold = 0.6
     valid_matches = ratio_distances < threshold
     
+    ### Use matches to determine overlap between images ###
+    # Arbitrary match threshold to determine overlap
+    overlap_threshold = 15 # has to be at least 8 for projection matrix d.o.f
+    overlap = valid_matches.sum().item() >= overlap_threshold
+    if overlap:
+        
         
     return img
 
