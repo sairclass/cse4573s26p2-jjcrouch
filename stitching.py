@@ -45,6 +45,7 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
         else:
             img_array_g = img_array
         # Use Kornia's SIFT function to extract key points and features
+        torch.manual_seed(42) # Prevents different output every time
         loc_affine_frms, resp_func_vals, loc_descs = K.feature.SIFTFeature()(img_array_g)
         # Save key points and features
         keypoints[img_num] = loc_affine_frms
