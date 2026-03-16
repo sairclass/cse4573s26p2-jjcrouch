@@ -137,13 +137,19 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
         # Calculate norm diff between imgs in overlap mask and threshold for foreground
         diff = torch.norm((warp_img1 - warp_img2) / 255.0, dim=0)
         foreground_mask = (diff > 0.2) * overlap_mask
+        # # Determine which image contains the background at foreground mask pixels
+        # # Use each img's distance from the global median
+        # # Smaller distance indicates background
+        # all_pixels = torch.cat([img1.reshape(c, -1), img2.reshape(c, -1)], dim=1) / 255.0
+        # rgb_medians = torch.median(all_pixels, dim=1)[0].view(-1, 1, 1)
+        # dist1 = torch.norm(warp_img1 / 255.0 - rgb_medians, dim=0)
+        # dist2 = torch.norm(warp_img2 / 255.0 - rgb_medians, dim=0)
+        
         # Determine which image contains the background at foreground mask pixels
-        # Use each img's distance from the global median
-        # Smaller distance indicates background
-        all_pixels = torch.cat([img1.reshape(c, -1), img2.reshape(c, -1)], dim=1) / 255.0
-        rgb_medians = torch.median(all_pixels, dim=1)[0].view(-1, 1, 1)
-        dist1 = torch.norm(warp_img1 / 255.0 - rgb_medians, dim=0)
-        dist2 = torch.norm(warp_img2 / 255.0 - rgb_medians, dim=0)
+        # Use non-overlapping regions as guaranteed background
+        only_mask1 = (mask1 * (1 - mask2))
+        only_mask2 = (mask2 * (1 - mask1))
+        
          
         # Step 5. Construct mosaic
         # Initialize zero matrix as canvas for mosaic
