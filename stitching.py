@@ -87,8 +87,16 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
         ### Compute homography between pairs using RANSAC ###
         # Use Kornia's RANSAC function to compute homography
         homography, _ = K.geometry.ransac.RANSAC(model_type='homography')(matched_points1, matched_points2)
-        print(homography.shape)
-        print(homography)
+        
+        ### Transform the images and stitch them into one mosaic ###
+        # Extract each image and convert to float
+        img1 = imgs[img_num[0]].float()
+        img2 = imgs[img_num[0]].float()
+        # Extract image shapes
+        c, h1, w1 = img1.shape
+        _, h2, w2 = img2.shape
+        # 
+        
         
     return img
 
