@@ -98,7 +98,7 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
         # Step 1. Calculate mosaic canvas size
         # Extract each image and convert to float
         img1 = imgs[img_num[0]].float()
-        img2 = imgs[img_num[0]].float()
+        img2 = imgs[img_num[1]].float()
         # Extract image dimensions
         c, h1, w1 = img1.shape
         _, h2, w2 = img2.shape
