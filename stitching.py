@@ -139,8 +139,10 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
         # Determine which image contains the background at foreground mask pixels
         # Use each img's distance from the global median
         all_pixels = torch.cat([img1.reshape(c, -1), img2.reshape(c, -1)], dim=1)
-        rgb_medians = torch.median(all_pixels, dim=1)
-        print(rgb_medians)
+        rgb_medians = torch.median(all_pixels, dim=1)[0]
+        dist1 = torch.norm(warp_img1 - rgb_medians, dim=0)
+        dist2 = torch.norm(warp_img2 - rgb_medians, dim=0)
+        print(dist1)
 
     return img
 
