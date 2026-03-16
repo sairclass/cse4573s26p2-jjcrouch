@@ -160,11 +160,8 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
         smaller_dist = dist * warp_img1 + (1 - dist) * warp_img2
         # Apply blending strategy to relevant masked pixels
         blended = torch.where(foreground_mask.bool().unsqueeze(0), smaller_dist, average_overlap)
-        print(img.shape)
-        print(blended.shape)
-
+        img = torch.where(overlap_mask.bool().unsqueeze(0), blended, img)
         
-
     return img
 
 # ------------------------------------ Task 2 ------------------------------------ #
