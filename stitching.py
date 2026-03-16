@@ -121,10 +121,10 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
         
         # Step 2. Warp images to canvas
         # Multiply translation matrix by homography matrix to make perspective transformation matrix
-        perspective = torch.matmul(translation, homography)
+        perspective = torch.matmul(translation, homography).unsqueeze(0)
         # Use Kornia's warp perspective function on both images (apply only translation to img1)
-        warp_img1 = K.geometry.warp_perspective(img1, perspective, (canvas_h, canvas_w))
-        warp_img2 = K.geometry.warp_perspective(img2, translation, (canvas_h, canvas_w))
+        warp_img1 = K.geometry.warp_perspective(img1.unsqueeze(0), perspective, (canvas_h, canvas_w))[0]
+        warp_img2 = K.geometry.warp_perspective(img2.unsqueeze(0), translation.unsqueeze(0), (canvas_h, canvas_w))[0]
         print(warp_img1.shape)
         print(warp_img2.shape)
         
