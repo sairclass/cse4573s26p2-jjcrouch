@@ -105,10 +105,11 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
         # Determine min, max coordinates from warped img1 and original img2
         corners2 = torch.tensor([[0, 0], [w2, 0], [w2, h2], [0, h2]])
         all_corners = torch.cat([warp_corners1, corners2])
-        print(all_corners)
         x_min, y_min = torch.floor(all_corners.min(dim=0)[0]).int()
         x_max, y_max = torch.ceil(all_corners.max(dim=0)[0]).int()
-        print(x_max, y_max)
+        canvas_w = x_max - x_min
+        canvas_h = y_max - y_min
+        print(canvas_w, canvas_h)
 
     return img
 
