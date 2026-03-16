@@ -131,12 +131,12 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
         
         # Step 4. Set up foreground elimination strategy
         # Define mask where pixels exist from either image
-        mask1 = (warp_img1.sum(dim=0) > 0).float()
-        mask2 = (warp_img2.sum(dim=0) > 0).float()
+        mask1 = torch.ones(1, 1, h1, w1)
+        mask2 = torch.ones(1, 1, h2, w2)
         overlap_mask = mask1 * mask2
         # Calculate norm diff between imgs in overlap mask and threshold for foreground
         diff = torch.norm(warp_img1 - warp_img2, dim=0)
-        foreground_mask = (diff > 0.2) * overlap_mask
+        foreground_mask = (diff > 50.0) * overlap_mask
         # Determine which image contains the background at foreground mask pixels
         # Use each img's distance from the global median
         # Smaller distance indicates background
