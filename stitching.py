@@ -43,7 +43,7 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
             img_array_g = K.color.rgb_to_grayscale(img_array)
         else:
             img_array_g = img_array
-        # Use SIFT to extract key points and features
+        # Use Kornia's SIFT function to extract key points and features
         loc_affine_frms, resp_func_vals, loc_descs = K.feature.SIFTFeature()(img_array_g)
         # Save key points and features
         keypoints[img_num] = loc_affine_frms
@@ -85,6 +85,9 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
         matched_points2 = keypoints2[indices2]
         
         ### Compute homography between pairs using RANSAC ###
+        # Use Kornia's RANSAC function to compute homography
+        homography = K.geometry.ransac.RANSAC(model_type='homography')(matched_points1, matched_points2)
+        print(homography)
         
     return img
 
