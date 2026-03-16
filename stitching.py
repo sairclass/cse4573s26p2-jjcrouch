@@ -28,6 +28,7 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
     #TODO: Add your code here. Do not modify the return and input arguments.
     
     ### Extract key points and their respective features for each image ###
+    
     # Define saving dictionaries
     keypoints = {}
     features = {}
@@ -50,6 +51,7 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
         features[img_num] = loc_descs
     
     ### Match features ###
+    
     # Extract features per image
     img_num = list(features.keys())
     feat1 = features[img_num[0]]
@@ -67,6 +69,7 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
     valid_matches = ratio_distances < threshold
     
     ### Use matches to determine overlap between images ###
+    
     # Arbitrary match threshold to determine overlap
     overlap_threshold = 15 # has to be at least 8 for projection matrix d.o.f
     overlap = valid_matches.sum().item() >= overlap_threshold
@@ -83,13 +86,15 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
         # Extract matches points per image
         matched_points1 = keypoints1[indices1]
         matched_points2 = keypoints2[indices2]
-        
+
         ### Compute homography between pairs using RANSAC ###
+        
         # Use Kornia's RANSAC function to compute homography
         homography, _ = K.geometry.ransac.RANSAC(model_type='homography')(matched_points1, matched_points2)
         
         ### Transform the images and stitch them into one mosaic ###
-        # Step 1. Calculate canvas size for mosaic
+        
+        # Step 1. Calculate mosaic canvas size and translation required
         # Extract each image and convert to float
         img1 = imgs[img_num[0]].float()
         img2 = imgs[img_num[0]].float()
@@ -109,7 +114,14 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
         x_max, y_max = torch.ceil(all_corners.max(dim=0)[0]).int()
         canvas_w = x_max - x_min
         canvas_h = y_max - y_min
-        print(canvas_w, canvas_h)
+        # Create translation matrix to shift all img coords to be positive
+        translation = torch.eye(3)
+        translation[0, 2] = -x_min
+        translation[1, 2] = -y_min
+        # Multiply translation matrix by homography matrix to make perspective transoformation matrix
+        perspective = torch.matmul(translation, homography)
+        print(perspective.shape)
+        
 
     return img
 
