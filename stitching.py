@@ -128,7 +128,7 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
         warp_img1 = K.geometry.warp_perspective(img1.unsqueeze(0), perspective, (canvas_h, canvas_w))[0]
         warp_img2 = K.geometry.warp_perspective(img2.unsqueeze(0), translation.unsqueeze(0), (canvas_h, canvas_w))[0]
         
-        # Step 4. Eliminate foreground
+        # Step 4. Set up foreground elimination strategy
         # Define mask where pixels exist from either image
         mask1 = (warp_img1.sum(dim=0) > 0).float()
         mask2 = (warp_img2.sum(dim=0) > 0).float()
@@ -138,11 +138,22 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
         foreground_mask = (diff > 0.2) * overlap_mask
         # Determine which image contains the background at foreground mask pixels
         # Use each img's distance from the global median
+        # Smaller distance indicates background
         all_pixels = torch.cat([img1.reshape(c, -1), img2.reshape(c, -1)], dim=1)
         rgb_medians = torch.median(all_pixels, dim=1)[0].view(-1, 1, 1)
         dist1 = torch.norm(warp_img1 - rgb_medians, dim=0)
         dist2 = torch.norm(warp_img2 - rgb_medians, dim=0)
-        print(dist1)
+        
+        # Step 5. Construct mosaic
+        # Initialize zero matrix as canvas for mosaic
+        img = torch.zeros(c, canvas_h, canvas_w)
+        # Add imgs to canvas
+        print(mask1.shape)
+        print(warp_img1.shape)
+        img = torch.where(mask1.unsqueeze(0).bool(), warp_img1, img)
+        img = torch.where(mask2.unsqueeze(0).bool(), warp_img2, img)
+        print(img)
+        
 
     return img
 
