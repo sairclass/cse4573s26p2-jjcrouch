@@ -136,7 +136,11 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
         # Calculate norm diff between imgs in overlap mask and threshold for foreground
         diff = torch.norm(warp_img1 - warp_img2, dim=0)
         foreground_mask = (diff > 0.2) * overlap_mask
-        
+        # Determine which image contains the background at foreground mask pixels
+        # Use each img's distance from the global median
+        all_pixels = torch.cat([img1.reshape(c, -1), img2.reshape(c, -1)], dim=1)
+        rgb_medians = torch.median(all_pixels, dim=1)
+        print(rgb_medians)
 
     return img
 
