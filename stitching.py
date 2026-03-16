@@ -92,9 +92,9 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
         # Use Kornia's RANSAC function to compute homography
         homography, _ = K.geometry.ransac.RANSAC(model_type='homography')(matched_points1, matched_points2)
         
-        ### Transform the images and stitch them into one mosaic ###
+        ### Transform the images and stitch them into one mosaic, eliminating the foreground ###
         
-        # Step 1. Calculate mosaic canvas size and translation matrix
+        # Step 1. Calculate mosaic canvas size
         # Extract each image and convert to float
         img1 = imgs[img_num[0]].float()
         img2 = imgs[img_num[0]].float()
@@ -114,20 +114,26 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
         x_max, y_max = torch.ceil(all_corners.max(dim=0)[0]).int()
         canvas_w = x_max - x_min
         canvas_h = y_max - y_min
+        
+        # Step 2. Calculate translation and perspective matrices for images to canvas
         # Create translation matrix to shift all img coords to be positive
         translation = torch.eye(3)
         translation[0, 2] = -x_min
         translation[1, 2] = -y_min
-        
-        # Step 2. Warp images to canvas
         # Multiply translation matrix by homography matrix to make perspective transformation matrix
         perspective = torch.matmul(translation, homography).unsqueeze(0)
+        
+        # Step 3. Warp images to canvas
         # Use Kornia's warp perspective function on both images (apply only translation to img1)
         warp_img1 = K.geometry.warp_perspective(img1.unsqueeze(0), perspective, (canvas_h, canvas_w))[0]
         warp_img2 = K.geometry.warp_perspective(img2.unsqueeze(0), translation.unsqueeze(0), (canvas_h, canvas_w))[0]
-        print(warp_img1.shape)
-        print(warp_img2.shape)
         
+        # Step 4. Eliminate foreground
+        # Define mask where pixels exist from either image
+        mask1 = (warp_img1.sum(dim=0) > 0).float()
+        mask2 = (warp_img2.sum(dim=0) > 0).float()
+        overlap_mask = mask1 * mask2
+        print(overlap_mask)
         
 
     return img
