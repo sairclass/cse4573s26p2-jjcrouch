@@ -89,15 +89,17 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
         homography, _ = K.geometry.ransac.RANSAC(model_type='homography')(matched_points1, matched_points2)
         
         ### Transform the images and stitch them into one mosaic ###
+        # Step 1. Calculate canvas size for mosaic
         # Extract each image and convert to float
         img1 = imgs[img_num[0]].float()
         img2 = imgs[img_num[0]].float()
-        # Extract image shapes
+        # Extract image dimensions
         c, h1, w1 = img1.shape
         _, h2, w2 = img2.shape
-        # 
-        
-        
+        # Define pre-warp img1 corners and convert to homogenous coordinates
+        corners1 = torch.tensor([[0, 0], [w1, 0], [w1, h1], [0, h1]])
+        h_corners1 = torch.cat([corners1, torch.ones(4, 1)], dim=1)
+        print(h_corners1.shape)
     return img
 
 # ------------------------------------ Task 2 ------------------------------------ #
