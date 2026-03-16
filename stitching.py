@@ -94,7 +94,7 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
         
         ### Transform the images and stitch them into one mosaic ###
         
-        # Step 1. Calculate mosaic canvas size and translation required
+        # Step 1. Calculate mosaic canvas size and translation matrix
         # Extract each image and convert to float
         img1 = imgs[img_num[0]].float()
         img2 = imgs[img_num[0]].float()
@@ -118,9 +118,16 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
         translation = torch.eye(3)
         translation[0, 2] = -x_min
         translation[1, 2] = -y_min
-        # Multiply translation matrix by homography matrix to make perspective transoformation matrix
+        
+        # Step 2. Warp images to canvas
+        # Multiply translation matrix by homography matrix to make perspective transformation matrix
         perspective = torch.matmul(translation, homography)
-        print(perspective.shape)
+        # Use Kornia's warp perspective function on both images (apply only translation to img1)
+        warp_img1 = K.geometry.warp_perspective(img1, perspective, (canvas_h, canvas_w))
+        warp_img2 = K.geometry.warp_perspective(img2, translation, (canvas_h, canvas_w))
+        print(warp_img1.shape)
+        print(warp_img2.shape)
+        
         
 
     return img
