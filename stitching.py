@@ -131,19 +131,19 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
         
         # Step 4. Set up foreground elimination strategy
         # Define mask where pixels exist from either image
-        mask1 = torch.ones(1, 1, h1, w1)
-        mask2 = torch.ones(1, 1, h2, w2)
+        mask1 = (warp_img1.sum(dim=0) > 0).float()
+        mask2 = (warp_img2.sum(dim=0) > 0).float()
         overlap_mask = mask1 * mask2
         # Calculate norm diff between imgs in overlap mask and threshold for foreground
-        diff = torch.norm(warp_img1 - warp_img2, dim=0)
-        foreground_mask = (diff > 50.0) * overlap_mask
+        diff = torch.norm((warp_img1 - warp_img2) / 255.0, dim=0)
+        foreground_mask = (diff > 0.2) * overlap_mask
         # Determine which image contains the background at foreground mask pixels
         # Use each img's distance from the global median
         # Smaller distance indicates background
-        all_pixels = torch.cat([img1.reshape(c, -1), img2.reshape(c, -1)], dim=1)
+        all_pixels = torch.cat([img1.reshape(c, -1), img2.reshape(c, -1)], dim=1) / 255.0
         rgb_medians = torch.median(all_pixels, dim=1)[0].view(-1, 1, 1)
-        dist1 = torch.norm(warp_img1 - rgb_medians, dim=0)
-        dist2 = torch.norm(warp_img2 - rgb_medians, dim=0)
+        dist1 = torch.norm(warp_img1 / 255.0 - rgb_medians, dim=0)
+        dist2 = torch.norm(warp_img2 / 255.0 - rgb_medians, dim=0)
          
         # Step 5. Construct mosaic
         # Initialize zero matrix as canvas for mosaic
@@ -156,7 +156,7 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
         average_overlap = (warp_img1 + warp_img2) / 2.0
         # Foreground mask pixels take values from image with smaller dist from median
         # Create array which represents the image with smaller distance from median at each pixel
-        dist = (dist1 < dist2).float().unsqueeze(0)
+        dist = (dist1 <= dist2).float().unsqueeze(0)
         smaller_dist = dist * warp_img1 + (1 - dist) * warp_img2
         # Apply blending strategy to relevant masked pixels
         blended = torch.where(foreground_mask.bool().unsqueeze(0), smaller_dist, average_overlap)
