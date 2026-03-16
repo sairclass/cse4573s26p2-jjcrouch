@@ -86,7 +86,8 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
         
         ### Compute homography between pairs using RANSAC ###
         # Use Kornia's RANSAC function to compute homography
-        homography = K.geometry.ransac.RANSAC(model_type='homography')(matched_points1, matched_points2)
+        homography, _ = K.geometry.ransac.RANSAC(model_type='homography')(matched_points1, matched_points2)
+        print(homography.shape)
         print(homography)
         
     return img
