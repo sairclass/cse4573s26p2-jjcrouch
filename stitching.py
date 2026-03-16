@@ -161,8 +161,11 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
         # Apply blending strategy to relevant masked pixels
         blended = torch.where(foreground_mask.bool().unsqueeze(0), smaller_dist, average_overlap)
         img = torch.where(overlap_mask.bool().unsqueeze(0), blended, img)
-        print(img)
-        print(img.shape)
+        
+        ### Save resulting mosaic ###
+        # Convert mosaic to uint8
+        img = img.to(torch.uint8)
+        show_image(img)
         
     return img
 
