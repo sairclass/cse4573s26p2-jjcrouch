@@ -99,11 +99,10 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
         # Define pre-warp img1 corners and convert to homogenous coordinates
         corners1 = torch.tensor([[0, 0], [w1, 0], [w1, h1], [0, h1]])
         h_corners1 = torch.cat([corners1, torch.ones(4, 1)], dim=1).unsqueeze(-1)
-        # Warp img1 corners using homography matrix
-        warp_corners1 = torch.matmul(homography, h_corners1)
-        print(homography.shape)
-        print(h_corners1.shape)
-        print(warp_corners1.shape)
+        # Warp img1 corners using homography matrix and convert back to img coords
+        warp_h_corners1 = torch.matmul(homography, h_corners1).squeeze(-1)
+        warp_corners1 = warp_h_corners1[:, :2] / warp_h_corners1[:, 2]
+        
     return img
 
 # ------------------------------------ Task 2 ------------------------------------ #
