@@ -144,6 +144,7 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
         dist1 = torch.norm(warp_img1 - rgb_medians, dim=0)
         dist2 = torch.norm(warp_img2 - rgb_medians, dim=0)
         
+        
         # Step 5. Construct mosaic
         # Initialize zero matrix as canvas for mosaic
         img = torch.zeros(c, canvas_h, canvas_w)
@@ -152,9 +153,11 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
         img = torch.where(mask2.unsqueeze(0).bool(), warp_img2, img)
         # Pixels in overlap mask are applied blending strategy
         # Non-foreground overlap pixels take average values from both images
-        
+        average_overlap = (warp_img1 + warp_img2) / 2.0
         # Foreground mask pixels take values from image with smaller dist from median
-        
+        # Create array which represents the image with smaller distance from median at each pixel
+        dist = (dist1 < dist2).float().unsqueeze(0)
+
 
         
 
