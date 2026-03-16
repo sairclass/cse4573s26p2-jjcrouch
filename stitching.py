@@ -106,9 +106,9 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
         corners2 = torch.tensor([[0, 0], [w2, 0], [w2, h2], [0, h2]])
         all_corners = torch.cat([warp_corners1, corners2])
         print(all_corners)
-        x_min, y_min = all_corners.min(dim=0)[0].int()
-        print(x_min)
-        print(y_min)
+        x_min, y_min = torch.floor(all_corners.min(dim=0)[0]).int()
+        x_max, y_max = torch.ceil(all_corners.max(dim=0)[0]).int()
+        print(x_max, y_max)
 
     return img
 
