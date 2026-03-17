@@ -197,6 +197,29 @@ def panorama(imgs: Dict[str, torch.Tensor]):
     img_nums = list(imgs.keys())
     N = len(img_nums)
     overlap = torch.eye(N)
-    print(overlap)
+    
+    ### Extract key points and their respective features for each image ###
+    
+    # Define saving dictionaries
+    keypoints = {}
+    features = {}
+    # Iterate through images
+    for img_num, img_array in imgs.items():
+        # Convert to float to match SIFT function expected input
+        img_array = img_array.float()
+        # Add channel to match SIFT function expected input
+        if len(img_array.shape) == 3:
+            img_array = img_array.unsqueeze(0)
+        # Convert to grayscale to match SIFT function expected input
+        if img_array.shape[1] == 3:
+            img_array_g = K.color.rgb_to_grayscale(img_array)
+        else:
+            img_array_g = img_array
+        # Use Kornia's SIFT function to extract key points and features
+        torch.manual_seed(42) # Prevents different output every time
+        loc_affine_frms, resp_func_vals, loc_descs = K.feature.SIFTFeature()(img_array_g)
+        # Save key points and features
+        keypoints[img_num] = loc_affine_frms
+        features[img_num] = loc_descs
     
     return img, overlap
