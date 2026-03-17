@@ -221,5 +221,17 @@ def panorama(imgs: Dict[str, torch.Tensor]):
         # Save key points and features
         keypoints[img_num] = loc_affine_frms
         features[img_num] = loc_descs
+        
+    ### Match features and build overlap array ###
+    
+    homographies = {}
+    for i in range(N):
+        for j in range(N):
+            # homography between image and itself should be identity matrix
+            if i == j:
+                homographies[(i, j)] = torch.eye(3)
+                continue
+            
+    
     
     return img, overlap
