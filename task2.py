@@ -12,11 +12,11 @@ import utils
 def parse_args():
     parser = argparse.ArgumentParser(description="cse 473/573 project 2.")
     parser.add_argument(
-        "--input_path", type=str, default="images",
-        help="path to task-1 images folder")
+        "--input_path", type=str, default="images/t2",
+        help="path to task-2 images folder")
     parser.add_argument(
         "--output_path", type=str, default="outputs/task2.png",
-        help="path to task-1 output folder")
+        help="path to task-2 output folder")
     parser.add_argument("--json", type=str, default="./task2.json",
         help="overlap array json for task2")
 

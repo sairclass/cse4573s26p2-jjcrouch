@@ -97,6 +97,10 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
         
         # Step 1. Calculate mosaic canvas size
         # Extract each image and convert to float
+        # img1 = imgs[img_num[0]]
+        # img2 = imgs[img_num[1]]
+        # show_image(img1)
+        # show_image(img2)
         img1 = imgs[img_num[0]].float()
         img2 = imgs[img_num[1]].float()
         # Extract image dimensions
@@ -171,7 +175,7 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
         ### Save resulting mosaic ###
         # Convert mosaic to uint8
         img = img.to(torch.uint8)
-        show_image(img)
+        # show_image(img)
         
     return img
 
@@ -188,5 +192,11 @@ def panorama(imgs: Dict[str, torch.Tensor]):
     overlap = torch.empty((3, 256, 256)) # assumed empty 256*256 overlap. Update this as per your logic.
 
     #TODO: Add your code here. Do not modify the return and input arguments.
-
+    
+    # Initialize overlap array
+    img_nums = list(imgs.keys())
+    N = len(img_nums)
+    overlap = torch.eye(N)
+    print(overlap)
+    
     return img, overlap
