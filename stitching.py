@@ -224,14 +224,28 @@ def panorama(imgs: Dict[str, torch.Tensor]):
         
     ### Match features and build overlap array ###
     
+    # Loop through image pairs
     homographies = {}
     for i in range(N):
         for j in range(N):
-            # homography between image and itself should be identity matrix
+            # Homography between image and itself should be identity matrix
             if i == j:
                 homographies[(i, j)] = torch.eye(3)
                 continue
             
+            feat1 = features[img_nums[i]]
+            feat2 = features[img_nums[j]]
+            # Batch compute SSD
+            ssd = torch.cdist(feat1, feat2, p=2.0) ** 2
+            # Find best (f1-f2) and 2nd best (f1-f2') match for each feature
+            distances, indices = torch.topk(ssd, k=2, largest=False)
+            best_ssd = distances[..., 0]
+            second_best_ssd = distances[..., 1]
+            # Calculate ssd ratio distances
+            ratio_distances = best_ssd / second_best_ssd
+            # Filter valid matches using arbitrary threshold
+            threshold = 0.6
+            valid_matches = ratio_distances < threshold
     
     
     return img, overlap
