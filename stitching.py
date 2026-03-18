@@ -285,6 +285,12 @@ def panorama(imgs: Dict[str, torch.Tensor]):
                 if overlap_pct >= 0.2:
                     homographies[(i,j)] = homography
                     overlap[i, j] = 1.0
-    print(overlap)
+    
+    ### Build panorama canvas around anchor image ###
+    
+    # Define anchor as the image with the most overlaps
+    num_overlaps = overlap.sum(dim=1)
+    anchor_idx = torch.argmax(num_overlaps)
+    print(anchor_idx)
                 
     return img, overlap
