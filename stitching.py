@@ -246,10 +246,10 @@ def panorama(imgs: Dict[str, torch.Tensor]):
             # Filter valid matches using arbitrary threshold
             threshold = 0.6
             valid_matches = ratio_distances < threshold
-            # Arbitrary match threshold to determine keypoint overlap
-            overlap_threshold = 15 # has to be at least 8 for projection matrix d.o.f
-            overlap = valid_matches.sum().item() >= overlap_threshold
-            if overlap:
+            # Arbitrary match threshold to determine feature overlap
+            feat_overlap_threshold = 15 # has to be at least 8 for projection matrix d.o.f
+            feat_overlap = valid_matches.sum().item() >= feat_overlap_threshold
+            if feat_overlap:
                 # Extract keypoints for each image
                 keypoints1_batched = keypoints[img_nums[0]][..., :, 2]
                 keypoints2_batched = keypoints[img_nums[1]][..., :, 2]
@@ -273,8 +273,9 @@ def panorama(imgs: Dict[str, torch.Tensor]):
                 # Make dummy ones matrix that represents image i
                 dummy_i = torch.ones(1, 1, h_i, w_i)
                 # Project dummy i onto image j canvas, removing any dummy i  not overlapping
-                warp_dummy_i = K.geometry.warp_perspective(dummy_i, homography.unsqueeze(0), (h_i, w_j))
-                print(c_j, h_j, w_j)
-                print(warp_dummy_i.shape)
+                warp_dummy_i = K.geometry.warp_perspective(dummy_i, homography.unsqueeze(0), (h_j, w_j))[0, 0]
+                # Count number of remaining pixels (0.5 threshold used due to bilinear interpolation)
+                overlap_pixels = (warp_dummy_i > 0.5).sum()
+                print(overlap_pixels)
                 
     return img, overlap
