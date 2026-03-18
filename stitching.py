@@ -97,10 +97,6 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
         
         # Step 1. Calculate mosaic canvas size
         # Extract each image and convert to float
-        # img1 = imgs[img_num[0]]
-        # img2 = imgs[img_num[1]]
-        # show_image(img1)
-        # show_image(img2)
         img1 = imgs[img_num[0]].float()
         img2 = imgs[img_num[1]].float()
         # Extract image dimensions
@@ -332,5 +328,20 @@ def panorama(imgs: Dict[str, torch.Tensor]):
         min_y = min(min_y, torch.floor(warp_corners[:, 1].min()))
         max_x = max(max_x, torch.ceil(warp_corners[:, 0].max()))
         max_y = max(max_y, torch.ceil(warp_corners[:, 1].max()))
+    # Calculate final canvas dimensions
+    canvas_w = int(max_x - min_x)
+    canvas_h = int(max_y - min_y)
+
+    ### Apply perspective transform to all images and blend onto panorama canvas ###
+    
+    # Create translation matrix to shift images onto canvas
+    translation = torch.eye(3)
+    translation[0, 2] = -min_x
+    translation[1, 2] = -min_y
+    # Initialize canvas and mask sum for blending (needed for averaging on overlapping regions)
+    c = imgs[img_nums[valid_indices[0]]].shape[0]
+    canvas_sum = torch.zeros((c, canvas_h, canvas_w))
+    mask_sum = torch.zeros((1, canvas_h, canvas_w))
+    # Warp each connected image to canvas and apply blending
     
     return img, overlap
