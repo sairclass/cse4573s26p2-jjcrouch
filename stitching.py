@@ -281,7 +281,6 @@ def panorama(imgs: Dict[str, torch.Tensor]):
                 area_j = h_j * w_j
                 min_area = min(area_i, area_j)
                 overlap_pct = overlap_pixels / min_area
-                print(overlap_pct)
                 if overlap_pct >= 0.2:
                     homographies[(i, j)] = homography
                     overlap[i, j] = 1.0
@@ -313,6 +312,25 @@ def panorama(imgs: Dict[str, torch.Tensor]):
     
     ### Build canvas for panorama ###
     
-
-                
+    # Initialize min and max coordinates
+    min_x, min_y = float('inf'), float('inf')
+    max_x, max_y = float('-inf'), float('-inf')
+    # Get all connected images that map to anchor canvas
+    valid_indices = list(homography_glob.keys())
+    # Calculate global bounding box for panorama
+    for idx in valid_indices:
+        img_array = imgs[img_nums[idx]].float()
+        c, h, w = img_array.shape
+        # Define img corners and convert to homogenous coordinates
+        corners = torch.tensor([[0, 0], [w, 0], [w, h], [0, h]])
+        h_corners = torch.cat([corners, torch.ones(4, 1)], dim=1).unsqueeze(-1)
+        # Warp corners using global homography matrix
+        warp_h_corners = torch.matmul(homography_glob[idx], h_corners).squeeze(-1)
+        warp_corners = warp_h_corners[:, :2] / warp_h_corners[:, 2:]
+        # Update min and max coordinates
+        min_x = min(min_x, torch.floor(warp_corners[:, 0].min()))
+        min_y = min(min_y, torch.floor(warp_corners[:, 1].min()))
+        max_x = max(max_x, torch.ceil(warp_corners[:, 0].max()))
+        max_y = max(max_y, torch.ceil(warp_corners[:, 1].max()))
+    
     return img, overlap
