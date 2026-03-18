@@ -343,5 +343,20 @@ def panorama(imgs: Dict[str, torch.Tensor]):
     canvas_sum = torch.zeros((c, canvas_h, canvas_w))
     mask_sum = torch.zeros((1, canvas_h, canvas_w))
     # Warp each connected image to canvas and apply blending
-    
+    for idx in valid_indices:
+        img_array = imgs[img_nums[idx]].float()
+        # Multiply translation matrix by global homography to make perspective transform matrix
+        perspective = torch.matmul(translation, homography_glob[idx]).unsqueeze(0)
+        # Warp image to canvas
+        warp_img = K.geometry.warp_perspective(img_array.unsqueeze(0), perspective, (canvas_h, canvas_w))[0]
+        # Define mask where pixels exist from the warped image
+        mask = (warp_img.sum(dim=0) > 0).float().unsqueeze(0)
+        # Accumulate image values and valid pixel counts
+        canvas_sum += warp_img
+        mask_sum += mask
+    # Construct mosaic by averaging pixel values where images overlap
+    img = canvas_sum / mask_sum.clamp(min=1.0)
+    # Convert final mosaic to uint8
+    img = img.to(torch.uint8)
+
     return img, overlap
