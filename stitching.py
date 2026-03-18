@@ -251,8 +251,8 @@ def panorama(imgs: Dict[str, torch.Tensor]):
             feat_overlap = valid_matches.sum().item() >= feat_overlap_threshold
             if feat_overlap:
                 # Extract keypoints for each image
-                keypoints1_batched = keypoints[img_nums[0]][..., :, 2]
-                keypoints2_batched = keypoints[img_nums[1]][..., :, 2]
+                keypoints1_batched = keypoints[img_nums[i]][..., :, 2]
+                keypoints2_batched = keypoints[img_nums[j]][..., :, 2]
                 keypoints1 = keypoints1_batched[0]
                 keypoints2 = keypoints2_batched[0]
                 # Define indices for matched points in image 1
@@ -276,6 +276,15 @@ def panorama(imgs: Dict[str, torch.Tensor]):
                 warp_dummy_i = K.geometry.warp_perspective(dummy_i, homography.unsqueeze(0), (h_j, w_j))[0, 0]
                 # Count number of remaining pixels (0.5 threshold used due to bilinear interpolation)
                 overlap_pixels = (warp_dummy_i > 0.5).sum()
-                print(overlap_pixels)
+                # Calculate overlap percentage
+                area_i = h_i * w_i
+                area_j = h_j * w_j
+                min_area = min(area_i, area_j)
+                overlap_pct = overlap_pixels / min_area
+                print(overlap_pct)
+                if overlap_pct >= 0.2:
+                    homographies[(i,j)] = homography
+                    overlap[i, j] = 1.0
+    print(overlap)
                 
     return img, overlap
