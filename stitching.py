@@ -358,5 +358,10 @@ def panorama(imgs: Dict[str, torch.Tensor]):
     img = canvas_sum / mask_sum.clamp(min=1.0)
     # Convert final mosaic to uint8
     img = img.to(torch.uint8)
+    
+    # Plot images for checking
+    for img_num, img_array in imgs.items():
+        show_image(img_array)
+    show_image(img)
 
     return img, overlap
