@@ -283,14 +283,36 @@ def panorama(imgs: Dict[str, torch.Tensor]):
                 overlap_pct = overlap_pixels / min_area
                 print(overlap_pct)
                 if overlap_pct >= 0.2:
-                    homographies[(i,j)] = homography
+                    homographies[(i, j)] = homography
                     overlap[i, j] = 1.0
     
-    ### Build panorama canvas around anchor image ###
+    ### Calculate global homography links to anchor image using breadth-first search ###
     
     # Define anchor as the image with the most overlaps
     num_overlaps = overlap.sum(dim=1)
-    anchor_idx = torch.argmax(num_overlaps)
-    print(anchor_idx)
+    anchor_idx = torch.argmax(num_overlaps).item()
+    # Initialize global homographies dictionary (each image has a homography linking back to anchor)
+    homography_glob = {anchor_idx: torch.eye(3)}
+    # Set up queue to check for overlapping images with breadth-first search
+    visited = []
+    queue = [anchor_idx]
+    while queue:
+        current = queue.pop(0)
+        for new in range(N):
+            if new not in visited and overlap[current, new] == 1.0:
+                visited.append(new)
+                queue.append(new)
+                # Map new image to reference (check for reliable homography)
+                if (new, current) in homographies:
+                    new_to_current = homographies[(new, current)]
+                elif (current, new) in homographies:
+                    new_to_current = homographies[(current, new)]
+                else:
+                    new_to_current = torch.eye(3)
+                homography_glob[new] = torch.matmul(homography_glob[current], new_to_current)
+    
+    ### Build canvas for panorama ###
+    
+
                 
     return img, overlap
