@@ -232,7 +232,7 @@ def panorama(imgs: Dict[str, torch.Tensor]):
             if i == j:
                 homographies[(i, j)] = torch.eye(3)
                 continue
-            
+            # Extract features per image
             feat1 = features[img_nums[i]]
             feat2 = features[img_nums[j]]
             # Batch compute SSD
@@ -246,6 +246,14 @@ def panorama(imgs: Dict[str, torch.Tensor]):
             # Filter valid matches using arbitrary threshold
             threshold = 0.6
             valid_matches = ratio_distances < threshold
-    
+            # Arbitrary match threshold to determine overlap
+            overlap_threshold = 15 # has to be at least 8 for projection matrix d.o.f
+            overlap = valid_matches.sum().item() >= overlap_threshold
+            if overlap:
+                # Extract keypoints for each image
+                keypoints1_batched = keypoints[img_num[0]][..., :, 2]
+                keypoints2_batched = keypoints[img_num[1]][..., :, 2]
+                keypoints1 = keypoints1_batched[0]
+                keypoints2 = keypoints2_batched[0]
     
     return img, overlap
