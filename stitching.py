@@ -246,14 +246,35 @@ def panorama(imgs: Dict[str, torch.Tensor]):
             # Filter valid matches using arbitrary threshold
             threshold = 0.6
             valid_matches = ratio_distances < threshold
-            # Arbitrary match threshold to determine overlap
+            # Arbitrary match threshold to determine keypoint overlap
             overlap_threshold = 15 # has to be at least 8 for projection matrix d.o.f
             overlap = valid_matches.sum().item() >= overlap_threshold
             if overlap:
                 # Extract keypoints for each image
-                keypoints1_batched = keypoints[img_num[0]][..., :, 2]
-                keypoints2_batched = keypoints[img_num[1]][..., :, 2]
+                keypoints1_batched = keypoints[img_nums[0]][..., :, 2]
+                keypoints2_batched = keypoints[img_nums[1]][..., :, 2]
                 keypoints1 = keypoints1_batched[0]
                 keypoints2 = keypoints2_batched[0]
-    
+                # Define indices for matched points in image 1
+                indices1 = torch.where(valid_matches[0])[0]
+                # Use indices from topk for matched points in image 2
+                indices2 = indices[0, valid_matches[0],0]
+                # Extract matches points per image
+                matched_points1 = keypoints1[indices1]
+                matched_points2 = keypoints2[indices2]
+                # Use Kornia's RANSAC function to compute homography
+                homography, _ = K.geometry.ransac.RANSAC(model_type='homography')(matched_points1, matched_points2)
+                
+                ### Determine if the images spatially overlap by 20% ###
+                
+                # Extract dimensions of images
+                c_i, h_i, w_i = imgs[img_nums[i]].shape
+                c_j, h_j, w_j = imgs[img_nums[j]].shape
+                # Make dummy ones matrix that represents image i
+                dummy_i = torch.ones(1, 1, h_i, w_i)
+                # Project dummy i onto image j canvas, removing any dummy i  not overlapping
+                warp_dummy_i = K.geometry.warp_perspective(dummy_i, homography.unsqueeze(0), (h_i, w_j))
+                print(c_j, h_j, w_j)
+                print(warp_dummy_i.shape)
+                
     return img, overlap
