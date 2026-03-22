@@ -39,14 +39,14 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
         # Add channel to match SIFT function expected input
         if len(img_array.shape) == 3:
             img_array = img_array.unsqueeze(0)
-        # Convert to grayscale to match SIFT function expected input
+        # Normalize and convert to grayscale to match SIFT function expected input
         if img_array.shape[1] == 3:
-            img_array_g = K.color.rgb_to_grayscale(img_array)
+            img_array_g_norm = K.color.rgb_to_grayscale(img_array / 255.0)
         else:
-            img_array_g = img_array
+            img_array_g_norm = img_array / 255.0
         # Use Kornia's SIFT function to extract key points and features
         torch.manual_seed(42) # Prevents different output every time
-        loc_affine_frms, resp_func_vals, loc_descs = K.feature.SIFTFeature()(img_array_g)
+        loc_affine_frms, resp_func_vals, loc_descs = K.feature.SIFTFeature()(img_array_g_norm)
         # Save key points and features
         keypoints[img_num] = loc_affine_frms
         features[img_num] = loc_descs
@@ -148,8 +148,8 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
         bg1 = (warp_img1 * only_mask1.unsqueeze(0)).sum(dim=(1, 2), keepdim=True) / n1
         bg2 = (warp_img2 * only_mask2.unsqueeze(0)).sum(dim=(1, 2), keepdim=True) / n2
         # Per-pixel distance from each image's own background model
-        dist1 = torch.norm((warp_img1 - bg1) / 255, dim=0)
-        dist2 = torch.norm((warp_img2 - bg2) / 255, dim=0)
+        dist1 = torch.norm((warp_img1 - bg1) / 255.0, dim=0)
+        dist2 = torch.norm((warp_img2 - bg2) / 255.0, dim=0)
          
         # Step 5. Construct mosaic
         # Initialize zero matrix as canvas for mosaic
@@ -169,8 +169,8 @@ def stitch_background(imgs: Dict[str, torch.Tensor]):
         img = torch.where(overlap_mask.bool().unsqueeze(0), blended, img)
         
         ### Save resulting mosaic ###
-        # Convert mosaic to uint8
-        img = img.to(torch.uint8)
+        # Ensure values between 0-255 and convert mosaic to uint8
+        img = img.clamp(0, 255).to(torch.uint8)
         # show_image(img)
         
     return img
@@ -206,13 +206,11 @@ def panorama(imgs: Dict[str, torch.Tensor]):
         # Add channel to match SIFT function expected input
         if len(img_array.shape) == 3:
             img_array = img_array.unsqueeze(0)
-        # Convert to grayscale to match SIFT function expected input
+        # Normalize and convert to grayscale to match SIFT function expected input
         if img_array.shape[1] == 3:
-            img_array_g = K.color.rgb_to_grayscale(img_array)
+            img_array_g_norm = K.color.rgb_to_grayscale(img_array / 255.0)
         else:
-            img_array_g = img_array
-        # Normalize for SIFT to prevent gradient explosion
-        img_array_g_norm = img_array_g / 255.0
+            img_array_g_norm = img_array / 255.0
         # Use Kornia's SIFT function to extract key points and features
         torch.manual_seed(42) # Prevents different output every time
         loc_affine_frms, resp_func_vals, loc_descs = K.feature.SIFTFeature()(img_array_g_norm)
@@ -358,12 +356,12 @@ def panorama(imgs: Dict[str, torch.Tensor]):
         mask_sum += mask
     # Construct mosaic by averaging pixel values where images overlap
     img = canvas_sum / mask_sum.clamp(min=1.0)
-    # Convert final mosaic to uint8
-    img = img.to(torch.uint8)
+    # Ensure values between 0-255 and convert mosaic to uint8
+    img = img.clamp(0, 255).to(torch.uint8)
     
     # Plot images for checking
-    for img_num, img_array in imgs.items():
-        show_image(img_array)
-    show_image(img)
+    # for img_num, img_array in imgs.items():
+    #     show_image(img_array)
+    # show_image(img)
 
     return img, overlap
