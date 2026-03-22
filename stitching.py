@@ -211,9 +211,11 @@ def panorama(imgs: Dict[str, torch.Tensor]):
             img_array_g = K.color.rgb_to_grayscale(img_array)
         else:
             img_array_g = img_array
+        # Normalize for SIFT to prevent gradient explosion
+        img_array_g_norm = img_array_g / 255.0
         # Use Kornia's SIFT function to extract key points and features
         torch.manual_seed(42) # Prevents different output every time
-        loc_affine_frms, resp_func_vals, loc_descs = K.feature.SIFTFeature()(img_array_g)
+        loc_affine_frms, resp_func_vals, loc_descs = K.feature.SIFTFeature()(img_array_g_norm)
         # Save key points and features
         keypoints[img_num] = loc_affine_frms
         features[img_num] = loc_descs
@@ -301,7 +303,7 @@ def panorama(imgs: Dict[str, torch.Tensor]):
                 if (new, current) in homographies:
                     new_to_current = homographies[(new, current)]
                 elif (current, new) in homographies:
-                    new_to_current = homographies[(current, new)]
+                    new_to_current = torch.inverse(homographies[(current, new)])
                 else:
                     new_to_current = torch.eye(3)
                 homography_glob[new] = torch.matmul(homography_glob[current], new_to_current)
